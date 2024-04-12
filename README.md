@@ -42,3 +42,4 @@ go2web -h # show help information
 ```
 
 ## Demo
+![](https://github.com/maria-afteni/PW_Lab5/blob/requests/additional/go2web.gif)
