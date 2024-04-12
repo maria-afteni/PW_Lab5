@@ -106,7 +106,40 @@ def main():
     parser.add_argument('-s', nargs='+', help='Make an HTTP request to search the term using google search engine and print top 10 results')
 
     args = parser.parse_args()
+    
+    result = Query()
+    if args.u:
+        query_result = cashed_results.search(result.type == 'browse' and result.query == args.u)
+        
+        if len(query_result) != 0:
+            print(query_result[0]['response'])
+        else:
+            scheme, host, path = parse_url(args.u)
+            port = HTTPS_PORT if scheme == 'https' else HTTP_PORT
 
+            headers, body = send_http_get_request(host, port, path)
+            result = ''
+
+            if 'Content-Type: application/json' in headers:
+                parsed_json = json.loads(body)
+                result = json.dumps(parsed_json, indent=4)
+            else:
+                result = parse_html_body(body)
+            
+            cashed_results.insert({'type': 'browse', 'query': args.u, 'response': result})
+            print(result)
+
+    elif args.s:
+        q = " ".join(args.s)
+        query_result = cashed_results.search(result.type == 'search' and result.query == q)
+
+        if len(query_result) != 0:
+            print(query_result[0]['response'])
+        else:
+            results = google_search(args.s)
+            grouped_result = "\n".join(results)
+            cashed_results.insert({'type': 'search', 'query': q, 'response': grouped_result})
+            print(grouped_result)
 
 
 if __name__ == "__main__":
